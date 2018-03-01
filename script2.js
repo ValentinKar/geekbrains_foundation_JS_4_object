@@ -54,6 +54,23 @@
           case 8:
             this.y--;
             break;
+          // добавлено перемещение по диагонали
+          case 1:
+            this.y++;
+            this.x--;
+            break;
+          case 3:
+            this.y++;
+            this.x++;
+            break;
+          case 7:
+            this.y--;
+            this.x--;
+            break;
+          case 9:
+            this.y--;
+            this.x++;
+            break;
         }
       },
     };
