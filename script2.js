@@ -22,12 +22,10 @@
      * Объект игрока, здесь будут все методы и свойства связанные с ним.
      * @property {int} x Позиция по X-координате.
      * @property {int} y Позиция по Y-координате.
-     * @property {settings} settings Настройки игры.
      */
     const player = {
       x: null,
       y: null,
-      settings,
 
       /**
        * Инициализация игрока и его метоположения.
@@ -38,71 +36,75 @@
       },
 
       /**
-       * Проверяет, не упрется ли игрок в стенку.
-       * @param {int} x X-координата игрока после шага вперед.
-       * @param {int} y Y-координата игрока после шага вперед.
+       * Двигает игрока по переданному направлению.
+       * @param {{x: int, y: int}} nextPoint Следующая точка пользователя.
        */
-      toWall(x, y) {
-        if (x > (this.settings.colsCount - 1) || x < this.settings.startPositionX) {
-          return false;
-        };
-        if (y > (this.settings.rowsCount - 1) || y < this.settings.startPositionY) {
-          return false;
-        };
-        return true;
+      move(nextPoint) {
+        this.x = nextPoint.x;
+        this.y = nextPoint.y;
       },
 
       /**
-       * Двигает игрока по переданному направлению.
-       * @param {int} direction Направление, в котором будет движение.
+       * Отдает следующую точку, в которой будет находится пользователь после движения.
+       * @param {int} direction Направление движения игрока.
+       * @returns {{x: int, y: int}} Следующая точка игрока.
        */
-      move(direction) {
-        let x = this.x;
-        let y = this.y;
+      getNextPosition(direction) {
+        const nextPosition = {
+          x: this.x,
+          y: this.y,
+        };
 
         // Определяем направление и обновляем местоположение игрока в зависимости от направления.
         switch (direction) {
           case 2:
-            this.toWall(x, ++y) && (this.y++);
+            nextPosition.y++;
             break;
           case 4:
-            this.toWall(--x, y) && (this.x--);
+            nextPosition.x--;
             break;
           case 6:
-            this.toWall(++x, y) && (this.x++);
+            nextPosition.x++;
             break;
           case 8:
-            this.toWall(x, --y) && (this.y--);
+            nextPosition.y--;
             break;
           // добавлено перемещение по диагонали
           case 1:
-            this.toWall(--x, ++y) && (this.y++, this.x--);
+            nextPosition.y++, 
+            nextPosition.x--;
             break;
           case 3:
-            this.toWall(++x, ++y) && (this.y++, this.x++);
+            nextPosition.y++, 
+            nextPosition.x++;
             break;
           case 7:
-            this.toWall(--x, --y) && (this.y--, this.x--);
+            nextPosition.y--, 
+            nextPosition.x--;
             break;
           case 9:
-            this.toWall(++x, --y) && (this.y--, this.x++);
+            nextPosition.y--, 
+            nextPosition.x++;
             break;
         }
+        return nextPosition;
       },
     };
 
     /**
      * Объект игры, здесь будут все методы и свойства связанные с самой игрой в общем.
      * @property {player} player Игрок, участвующий в игре.
+     * @property {settings} settings Настройки игры.
      */
     const game = {
       player,
+      settings,
 
       /**
        * Запускает игру.
        */
       run() {
-        this.player.init(this.player.settings.startPositionX, this.player.settings.startPositionY);
+        this.player.init(this.settings.startPositionX, this.settings.startPositionY);
         // Бесконечный цикл
         while (true) {
           // Отображаем нашу игру.
@@ -117,8 +119,11 @@
             return;
           }
 
-          // Двигаем игрока.
-          this.player.move(direction);
+          const nextPoint = this.player.getNextPosition(direction);
+          if (this.canPlayerMakeStep(nextPoint)) {
+            // Двигаем игрока.
+            this.player.move(nextPoint);
+          }
         }
       },
 
@@ -130,9 +135,9 @@
         let map = "";
 
         // Цикл перебирает все строки, которые надо отобразить.
-        for (let row = 0; row < this.player.settings.rowsCount; row++) {
+        for (let row = 0; row < this.settings.rowsCount; row++) {
           // В каждой строке отображаем для каждой колонки (x - клетка, o - игрок).
-          for (let col = 0; col < this.player.settings.colsCount; col++) {
+          for (let col = 0; col < this.settings.colsCount; col++) {
             // Проверяем, если на данной позиции должен быть и игрок, отображаем игрока, если нет - клетку.
             if (this.player.y === row && this.player.x === col) {
               map += 'o ';
@@ -172,6 +177,18 @@
           // Если пользователь ввел корректное значение - отдаем его.
           return direction;
         }
+      },
+
+      /**
+       * Проверяет может ли пользователь перейти на точку.
+       * @param {{x: int, y: int}} nextPoint Точка, которую проверяем.
+       * @returns {boolean} true, если пользователь может перейти в направлении движения, иначе false.
+       */
+      canPlayerMakeStep(nextPoint) {
+        return nextPoint.x >= 0 && 
+          nextPoint.x < this.settings.colsCount && 
+          nextPoint.y >= 0 && 
+          nextPoint.y < this.settings.rowsCount; 
       },
     };
 
